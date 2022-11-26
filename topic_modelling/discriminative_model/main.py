@@ -2,8 +2,6 @@
 Topic Modelling using BERT
 Reference - https://towardsdatascience.com/topic-modeling-with-bert-779f7db187e6
 """
-
-
 from sklearn.datasets import fetch_20newsgroups
 from sentence_transformers import SentenceTransformer
 import umap
@@ -38,8 +36,6 @@ clustered = result.loc[result.labels != -1, :]
 plt.scatter(outliers.x, outliers.y, color='#BDBDBD', s=0.05)
 plt.scatter(clustered.x, clustered.y, c=clustered.labels, s=0.05, cmap='hsv_r')
 plt.colorbar()
-# %%
-
 
 docs_df = pd.DataFrame(data, columns=["Doc"])
 docs_df['Topic'] = cluster.labels_
@@ -80,5 +76,4 @@ def extract_topic_sizes(df):
 top_n_words = extract_top_n_words_per_topic(tf_idf, count, docs_per_topic, n=20)
 topic_sizes = extract_topic_sizes(docs_df) 
 
-pprint(top_n_words)
 print(topic_sizes.head())

@@ -1,0 +1,260 @@
+Cluster 0
+ europe
+ energy
+ gas
+ russia
+ risk
+ said
+ oil
+ power
+ based
+ just
+
+
+Cluster 1
+ carbon
+ climate
+ energy
+ change
+ market
+ climate change
+ said
+ emissions
+ world
+ prices
+
+
+Cluster 2
+ funds
+ esg
+ investors
+ fund
+ money
+ bond
+ russia
+ data
+ managers
+ billion
+
+
+Cluster 3
+ china
+ government
+ market
+ country
+ biggest
+ investors
+ group
+ markets
+ said
+ sector
+
+
+Cluster 4
+ twitter
+ musk
+ tesla
+ billion
+ deal
+ said
+ people
+ world
+ electric
+ chief
+
+
+Cluster 5
+ oil
+ gas
+ emissions
+ prices
+ fuel
+ power
+ supply
+ energy
+ companies
+ climate
+
+
+Cluster 6
+ bank
+ credit
+ executive
+ business
+ said
+ chief
+ risk
+ ceo
+ group
+ firm
+
+
+Cluster 7
+ green
+ bonds
+ debt
+ billion
+ sustainability
+ year
+ bond
+ sustainable
+ jpmorgan
+ global
+
+
+Cluster 8
+ business
+ time
+ world
+ largest
+ year
+ industry
+ esg
+ people
+ years
+ said
+
+
+Cluster 9
+ company
+ shares
+ tesla
+ new
+ year
+ musk
+ said
+ just
+ years
+ companies
+
+
+Cluster 10
+ state
+ deal
+ year
+ bond
+ debt
+ said
+ firms
+ companies
+ company
+ new
+
+
+Cluster 11
+ fund
+ esg
+ managers
+ sustainable
+ funds
+ european
+ investment
+ europe
+ environmental social
+ social
+
+
+Cluster 12
+ russia
+ said
+ country
+ plans
+ companies
+ people
+ biggest
+ make
+ week
+ oil
+
+
+Cluster 13
+ esg
+ said
+ social
+ funds
+ environmental
+ environmental social
+ investing
+ investors
+ governance
+ sustainability
+
+
+Cluster 14
+ energy
+ billion
+ year
+ china
+ power
+ said
+ according
+ carbon
+ including
+ companies
+
+
+Cluster 15
+ coal
+ fossil
+ bonds
+ gas
+ energy
+ companies
+ fuel
+ global
+ year
+ debt
+
+
+Cluster 16
+ electric
+ new
+ market
+ said
+ plans
+ company
+ tesla
+ like
+ companies
+ chief
+
+
+Cluster 17
+ goldman
+ investors
+ according
+ esg
+ bank
+ said
+ new
+ group
+ green
+ investment
+
+
+Cluster 18
+ climate
+ change
+ climate change
+ financial
+ said
+ global
+ finance
+ energy
+ net
+ world
+
+
+Cluster 19
+ companies
+ investors
+ said
+ company
+ management
+ billion
+ new
+ financial
+ capital
+ investment
+
+

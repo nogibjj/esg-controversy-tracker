@@ -2,7 +2,7 @@
 Topic Modelling using BERT
 Reference - https://towardsdatascience.com/topic-modeling-with-bert-779f7db187e6
 """
-from sklearn.datasets import fetch_20newsgroups
+#%% 
 from sentence_transformers import SentenceTransformer
 import umap
 import hdbscan
@@ -11,10 +11,10 @@ import pandas as pd
 import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer
 
-data = fetch_20newsgroups(subset='all')['data']
+data = pd.read_csv('/workspaces/esg-controversy-tracker/dataset/us_equities_news_dataset.csv')['content']
 model = SentenceTransformer('distilbert-base-nli-mean-tokens')
 embeddings = model.encode(data, show_progress_bar=True)
-
+#%% 
 umap_embeddings = umap.UMAP(n_neighbors=15, 
                             n_components=5, 
                             metric='cosine').fit_transform(embeddings)
@@ -41,7 +41,7 @@ docs_df = pd.DataFrame(data, columns=["Doc"])
 docs_df['Topic'] = cluster.labels_
 docs_df['Doc_ID'] = range(len(docs_df))
 docs_per_topic = docs_df.groupby(['Topic'], as_index = False).agg({'Doc': ' '.join})
-
+docs_per_topic.to_csv('topic_tagged.csv', index=False)
 def c_tf_idf(documents, m, ngram_range=(1, 1)):
     count = CountVectorizer(ngram_range=ngram_range, stop_words="english").fit(documents)
     t = count.transform(documents).toarray()
@@ -77,3 +77,5 @@ top_n_words = extract_top_n_words_per_topic(tf_idf, count, docs_per_topic, n=20)
 topic_sizes = extract_topic_sizes(docs_df) 
 
 print(topic_sizes.head())
+
+print(top_n_words)

@@ -22,17 +22,15 @@ import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 stopwords_list = stopwords.words("english")
 data = pd.read_csv('/workspaces/esg-controversy-tracker/dataset/us_equities_news_dataset.csv')['content']
+data = data[data == data]
 #%%
 keywords = ['carbon', 'emissions', 'oil spill', 'wastewater', 'waste water', 'co2', 'nox']
 data = data.str.lower()
-data = data[data.str.contains(keywords)]
+data = data[data.str.contains('|'.join(keywords))].reset_index(drop=True)
 print(len(data))
 print (data[0])
 print('#'*50)
 
-#%%
-data = data[data==data]
-print(data[data.str.contains('carbon')].reset_index()[718])
 #%%
 def lemmatization(texts, allowed_postags=["NOUN", "ADJ", "VERB", "ADV"]):
     nlp = spacy.load("en_core_web_sm", disable=["parser", "ner"])
@@ -86,6 +84,5 @@ lda_model = gensim.models.ldamodel.LdaModel(corpus=corpus,
 pyLDAvis.enable_notebook()
 vis = pyLDAvis.gensim_models.prepare(lda_model, corpus, id2word, mds="mmds", R=30)
 vis
-# %%
 
 # %%

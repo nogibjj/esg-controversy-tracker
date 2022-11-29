@@ -19,6 +19,7 @@ Performs two functions
 from sklearn.feature_extraction.text import TfidfVectorizer
 import spacy
 from nltk.corpus import stopwords
+import pandas as pd
 
 def remove_numbers(text_series):
     return text_series.str.replace(pat=" \d+", repl=" ", regex=True)
@@ -53,16 +54,14 @@ def apply_tf_idf_weighting(text_series):
         all_keywords.append(keywords)
     
     # Change the return type
-    return denselist, all_keywords
+    return all_keywords
 
 def standardize_whitespace(text_series):
-    return text_series.str.replace(r'\s+', ' ')
+    return text_series.str.replace(pat=r'\s+', repl=" ", regex=True)
 
 def remove_stopwords(text_series, stopwords_list=stopwords.words("english")):
-    pat = r'\b(?:{})\b'.format('|'.join(stop))
-    text_series = text_series.str.replace(pat, '')
-    
-    return text_series
+    pattern = r'\b(?:{})\b'.format('|'.join(stopwords_list))
+    return text_series.str.replace(pat=pattern, repl=" ", regex=True)
 
 def lemmatize_and_limit_pos(text_series, allowed_postags=["NOUN", "ADJ", "VERB", "ADV"]):
     nlp = spacy.load("en_core_web_sm", disable=["parser", "ner"])
@@ -77,7 +76,20 @@ def lemmatize_and_limit_pos(text_series, allowed_postags=["NOUN", "ADJ", "VERB",
         texts_out.append(final)
     return (texts_out)
 
+def topic_modeling_preprocess(text_series):
+    cleaned_text = text_series.str.lower()
+    cleaned_text = remove_numbers(cleaned_text)
+    cleaned_text = remove_roman_numbers(cleaned_text)
+    cleaned_text = lemmatize_and_limit_pos(cleaned_text)
+    cleaned_text = apply_tf_idf_weighting(cleaned_text)
+    cleaned_text = [' '.join(x) for x in cleaned_text]
+    return pd.Series(cleaned_text)
+
+
 if __name__ == "__main__":
-    pass
+    data = pd.read_csv('/workspaces/esg-controversy-tracker/dataset/us_equities_news_dataset.csv', nrows=100)['content'].str.lower()
+    op = topic_modeling_preprocess(data)
+    print(op)
+
 
 

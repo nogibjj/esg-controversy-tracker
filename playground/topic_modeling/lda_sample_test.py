@@ -24,7 +24,7 @@ stopwords_list = stopwords.words("english")
 data = pd.read_csv('/workspaces/esg-controversy-tracker/dataset/us_equities_news_dataset.csv')['content']
 data = data[data == data]
 #%%
-keywords = ['carbon', 'emissions', 'oil spill', 'wastewater', 'waste water', 'co2', 'nox']
+keywords = ['carbon', 'emissions', 'oil spill', 'wastewater', 'waste water', 'co2', 'nox', 'fuel']
 data = data.str.lower()
 data = data[data.str.contains('|'.join(keywords))].reset_index(drop=True)
 print(len(data))
@@ -75,7 +75,7 @@ print (word)
 # %%
 lda_model = gensim.models.ldamodel.LdaModel(corpus=corpus,
                                            id2word=id2word,
-                                           num_topics=5,
+                                           num_topics=3,
                                            random_state=100,
                                            update_every=1,
                                            chunksize=100,
@@ -84,5 +84,3 @@ lda_model = gensim.models.ldamodel.LdaModel(corpus=corpus,
 pyLDAvis.enable_notebook()
 vis = pyLDAvis.gensim_models.prepare(lda_model, corpus, id2word, mds="mmds", R=30)
 vis
-
-# %%

@@ -14,8 +14,8 @@ from nltk.corpus import stopwords
 from sklearn.feature_extraction.text import CountVectorizer
 from collections import defaultdict
 
-data_path = 
-data = pd.read_csv('News_sentiment_Jan2017_to_Apr2021.csv')
+dataset_path = '/workspaces/esg-controversy-tracker/dataset/news_sentiment.csv'
+data = pd.read_csv(dataset_path)
 
 # Pre-process Data
 def preprocess_data(string):

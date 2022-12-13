@@ -130,3 +130,5 @@ dmypy.json
 
 # Remove the dataset folder
 dataset/
+
+.vscode/

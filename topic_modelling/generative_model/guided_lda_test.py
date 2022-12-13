@@ -15,7 +15,7 @@ e_keywords = ['emission reduction', 'biodiversity', 'environmental management sy
 s_keywords = ['customer health safety', 'quality', 'privacy', 'product labeling']
 g_keywords = ['ceo board member', 'esg related compensation', 'board structure type']
 all_keywords = e_keywords + s_keywords + g_keywords
-data = pd.read_csv('/workspaces/esg-controversy-tracker/dataset/us_equities_news_dataset.csv')['content'].str.lower()
+data = pd.read_csv('/workspaces/esg-controversy-tracker/dataset/ESG_daily_news.csv', nrows=1000)['text'].str.lower()
 data = data[data == data]
 data = data[data.str.contains('|'.join(all_keywords))]
 data = data[0:1000]
@@ -40,7 +40,10 @@ vocab = set(list(term_document_matrix.columns) + list(all_keywords))
 
 word2id = dict((v, idx) for idx, v in enumerate(vocab))
 
-model = guidedlda.GuidedLDA(n_topics=3, n_iter=100, random_state=7, refresh=20)
+model = guidedlda.GuidedLDA(
+    n_topics=3, 
+    n_iter=100, 
+    random_state=7, refresh=20)
 
 seed_topics = {}
 for t_id, st in enumerate(seed_topic_list):

@@ -3,19 +3,21 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report
 from sklearn.metrics import accuracy_score
 import math
 import nltk
-nltk.download('wordnet')
-nltk.download('omw-1.4')
-nltk.download('stopwords')
+
+
 from nltk.corpus import stopwords
+from nltk.tokenize import WhitespaceTokenizer
+from nltk.stem import PorterStemmer
 from sklearn.feature_extraction.text import CountVectorizer
 from collections import defaultdict
 
+porter_stemmer = PorterStemmer()
+whitespace_tokenizer = WhitespaceTokenizer()
 dataset_path = '/workspaces/esg-controversy-tracker/dataset/news_sentiment.csv'
-data = pd.read_csv(dataset_path)
+data = pd.read_csv(dataset_path, nrows=1000)
 
 # Pre-process Data
 def preprocess_data(string):
@@ -32,14 +34,11 @@ data['Title'] = data['Title'].apply(lambda x: preprocess_data(x)) # preprocess t
 stop_words = set(stopwords.words('english')) # set words we stop on
 data['Title'] = data['Title'].apply(lambda x: ' '.join([word for word in x.split() if word not in (stop_words)]))
 
-# using lemmatizer to grouping together the different inflected forms of a word so they can be analysed as a single item
-w_tokenizer = nltk.tokenize.WhitespaceTokenizer()
-lemmatizer = nltk.stem.WordNetLemmatizer()
+# Use stemming to reduce words to their base form
 def lemmatize_text(text):
-    st = ""
-    for w in w_tokenizer.tokenize(text):
-        st = st + lemmatizer.lemmatize(w) + " "
-    return st
+    text = whitespace_tokenizer.tokenize(text)
+    text = [porter_stemmer.stem(x) for x in text]
+    return ' '.join(text)
 data['Title'] = data.Title.apply(lemmatize_text)
 
 # Split the data into training and testing data
@@ -48,7 +47,7 @@ labels = data['sentiment'].values
 encoder = LabelEncoder()
 encoded_labels = encoder.fit_transform(labels)
 # split dataset into 80% train and 20% test parts using train_test_split
-train_X, test_X, train_Y, test_Y = train_test_split(Title, encoded_labels, stratify = encoded_labels)
+train_X, test_X, train_Y, test_Y = train_test_split(Title, encoded_labels, stratify = encoded_labels, random_state=121213)
 
 
 # Building the Naive Bayes Classifier from scratch
@@ -100,7 +99,7 @@ def predict(n_label_items, Vocabulary, word_counts, log_label_priors, labels, x)
     result = []
     for text in x:
         label_scores = {l: log_label_priors[l] for l in labels}
-        words = set(w_tokenizer.tokenize(text))
+        words = set(whitespace_tokenizer.tokenize(text))
         for word in words:
             if word not in Vocabulary: continue
             for l in labels:
@@ -117,3 +116,6 @@ labels = [0,1]
 n_label_items, log_label_priors = fit_set(train_X,train_Y,labels)
 pred = predict(n_label_items, Vocabulary, word_counts, log_label_priors, labels, test_X)
 print("Accuracy of prediction on test set : ", accuracy_score(test_Y,pred))
+
+print(log_label_priors) 
+print(n_label_items)

@@ -14,7 +14,7 @@ from nltk.corpus import stopwords
 from sklearn.feature_extraction.text import CountVectorizer
 from collections import defaultdict
 
-
+data_path = 
 data = pd.read_csv('News_sentiment_Jan2017_to_Apr2021.csv')
 
 # Pre-process Data

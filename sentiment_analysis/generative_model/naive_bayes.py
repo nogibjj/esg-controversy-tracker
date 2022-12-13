@@ -1,121 +1,88 @@
-import re
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
-import math
-import nltk
-
-
-from nltk.corpus import stopwords
-from nltk.tokenize import WhitespaceTokenizer
-from nltk.stem import PorterStemmer
+import sys
+from datetime import datetime as dt
+import random
 from sklearn.feature_extraction.text import CountVectorizer
-from collections import defaultdict
+from sklearn.naive_bayes import MultinomialNB
 
-porter_stemmer = PorterStemmer()
-whitespace_tokenizer = WhitespaceTokenizer()
+sys.path.append('../..')
+from pre_processing_scripts import pre_processing
+random_state=12321
 dataset_path = '/workspaces/esg-controversy-tracker/dataset/news_sentiment.csv'
-data = pd.read_csv(dataset_path, nrows=1000)
 
-# Pre-process Data
-def preprocess_data(string):
-    removelist = ""
-    result = re.sub('','',string)#remove HTML tags
-    result = re.sub('https://.*','',result)#remove URLs  
-    result = re.sub(r'\W+', ' ', result)#remove non-alphanumeric characters 
-    result = result.lower() # changing result into lower case
-    return result
+# Limit the dataset to n rows
+data = pd.read_csv(dataset_path)
+max_class_samples = 10000
+data = data.sample(frac=1, random_state=random_state).reset_index()
+pos_sample = data[data['sentiment'] == 'POSITIVE'][0:max_class_samples]
+neg_sample = data[data['sentiment'] == 'NEGATIVE'][0:max_class_samples]
+data = pd.concat([pos_sample, neg_sample])
 
-data['Title'] = data['Title'].apply(lambda x: preprocess_data(x)) # preprocess the Title
+data["sentiment"] = [0 if x=='NEGATIVE' else 1 for x in data['sentiment']]
 
 
-stop_words = set(stopwords.words('english')) # set words we stop on
-data['Title'] = data['Title'].apply(lambda x: ' '.join([word for word in x.split() if word not in (stop_words)]))
+def data_preprocess(data):
+    """
+    Wrapper Function to perform pre-processing and vectorization of the data
+    Main functions are written in pre_processing_scripts/pre_processing.py
+    """
+    # Pre-process Data
+    data = data.sample(frac=1, random_state=random_state).reset_index()
+    data['Title'] = pre_processing.remove_stopwords(data['Title'])
+    data['Title'] = pre_processing.remove_non_alphanumeric(data['Title'])
+    data['Title'] = np.vectorize(pre_processing.stem_text)(data['Title'])
+    data['Title'] = pre_processing.remove_numbers(data['Title'])
 
-# Use stemming to reduce words to their base form
-def lemmatize_text(text):
-    text = whitespace_tokenizer.tokenize(text)
-    text = [porter_stemmer.stem(x) for x in text]
-    return ' '.join(text)
-data['Title'] = data.Title.apply(lemmatize_text)
+    # Split the data into training and testing data
+    title = data['Title'].values
+    count_vec = CountVectorizer() 
+    title = count_vec.fit_transform(title).toarray()
+    vocabulary = count_vec.get_feature_names_out() 
 
-# Split the data into training and testing data
-Title = data['Title'].values
-labels = data['sentiment'].values
-encoder = LabelEncoder()
-encoded_labels = encoder.fit_transform(labels)
-# split dataset into 80% train and 20% test parts using train_test_split
-train_X, test_X, train_Y, test_Y = train_test_split(Title, encoded_labels, stratify = encoded_labels, random_state=121213)
+    labels = data['sentiment'].values
+    train_x, test_x, train_y, test_y = train_test_split(title, labels, stratify = labels, random_state=random_state)
+    return train_x, test_x, train_y, test_y, vocabulary
 
 
-# Building the Naive Bayes Classifier from scratch
-## get the frequency of each word appearing in the training set
-CountVec = CountVectorizer(max_features = 3000) 
-X = CountVec.fit_transform(train_X)
-Vocabulary = CountVec.get_feature_names()
-X = X.toarray()
-## store the word in the dictionary
-word_counts = {}
-for l in range(2):
-    word_counts[l] = defaultdict(lambda: 0)
-## store unique words in the corpus in vocab
-for i in range(X.shape[0]):
-    l = train_Y[i]
-    for j in range(len(Vocabulary)):
-        word_counts[l][Vocabulary[j]] += X[i][j]
-        
-        
-        
-# smmothened function takes the vocabulary and the raw ‘word_counts’ dictionary 
-# returns the smoothened conditional probabilities.
-def smoothened_conditional_probabilities(n_label_items, Vocabulary, word_counts, word, text_Y):
-    a = word_counts[text_Y][word] + 1
-    b = n_label_items[text_Y] + len(Vocabulary)
-    return math.log(a/b)
+def train_model(train_x, test_x, train_y, test_y, model_type=MultinomialNB()):
+    """
+    Function to train the model
+    """
+    naive_bayes_classifier = model_type
+    naive_bayes_model = naive_bayes_classifier.fit(train_x, train_y)
+    pred_y = naive_bayes_model.predict(test_x)
+    print(accuracy_score(pred_y, test_y))
+    return naive_bayes_model
 
-# group by label 
-def group_label(x, y, labels):
-    data = {}
-    for l in labels:
-        data[l] = x[np.where(y == l)]
-    return data
+def generate_synthetic_data(naive_bayes_model, vocabulary):
 
-# We define the ‘fit_set’ functions for our classifier.
-def fit_set(x, y, labels):
-    n_label_items = {}
-    log_label_priors = {}
-    n = len(x)
-    grouped_data = group_label(x, y, labels) # group by label
-    for l, data in grouped_data.items():
-        n_label_items[l] = len(data)
-        log_label_priors[l] = math.log(n_label_items[l] / n)
-    return n_label_items, log_label_priors
+    total_samples_required = len(data)
+    prior_word_prob = np.exp(naive_bayes_model.feature_log_prob_)
 
-# We define the ‘predict’ functions for our classifier
-## take title(x) and labels(Y) to fitted on and return the number of titles with each sentiment label and the apriori conditional probabilities. 
-def predict(n_label_items, Vocabulary, word_counts, log_label_priors, labels, x):
-    result = []
-    for text in x:
-        label_scores = {l: log_label_priors[l] for l in labels}
-        words = set(whitespace_tokenizer.tokenize(text))
-        for word in words:
-            if word not in Vocabulary: continue
-            for l in labels:
-                # apply the smoothened function to the probabilities
-                log_w_given_l = smoothened_conditional_probabilities(n_label_items, Vocabulary, word_counts, word, l)
-                # increasing the probabilities by 1 
-                label_scores[l] += log_w_given_l
-        # return the predictions on unseen test titles.
-        result.append(max(label_scores, key=label_scores.get))
-    return result
+    # Generating Positive Samples - class 1
+    pos_sentences = []
+    for n in range((total_samples_required//2)):
+        word_list = random.choices(vocabulary, prior_word_prob[1], k=random.randint(5, 15))
+        pos_sentences.append(" ".join(word_list))
+    pos_df = pd.DataFrame({"Title":pos_sentences, "sentiment":1})
 
-# Fitting the Model on Training Set and Evaluating Accuracies on the Test Set
-labels = [0,1]
-n_label_items, log_label_priors = fit_set(train_X,train_Y,labels)
-pred = predict(n_label_items, Vocabulary, word_counts, log_label_priors, labels, test_X)
-print("Accuracy of prediction on test set : ", accuracy_score(test_Y,pred))
+    # Generating Negative Samples - class 0
+    neg_sentences = []
+    for n in range((total_samples_required//2)):
+        word_list = random.choices(Vocabulary, prior_word_prob[0], k=random.randint(5, 15))
+        neg_sentences.append(" ".join(word_list))
+    neg_df = pd.DataFrame({"Title":neg_sentences, "sentiment":0})
+    synthetic_data = pd.concat([pos_df, neg_df])
 
-print(log_label_priors) 
-print(n_label_items)
+    return synthetic_data
+
+
+train_x, test_x, train_y, test_y, Vocabulary = data_preprocess(data)
+model = train_model(train_x, test_x, train_y, test_y)
+synthetic_data = generate_synthetic_data(model, Vocabulary)
+
+train_x, test_x, train_y, test_y, Vocabulary = data_preprocess(synthetic_data)
+model = train_model(train_x, test_x, train_y, test_y)

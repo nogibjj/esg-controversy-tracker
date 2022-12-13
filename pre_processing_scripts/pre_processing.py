@@ -19,7 +19,12 @@ Performs two functions
 from sklearn.feature_extraction.text import TfidfVectorizer
 import spacy
 from nltk.corpus import stopwords
+from nltk.tokenize import WhitespaceTokenizer
+from nltk.stem import PorterStemmer
 import pandas as pd
+
+porter_stemmer = PorterStemmer()
+whitespace_tokenizer = WhitespaceTokenizer()
 
 def remove_numbers(text_series):
     return text_series.str.replace(pat=" \d+", repl=" ", regex=True)
@@ -31,10 +36,7 @@ def remove_roman_numbers(text_series):
 def apply_tf_idf_weighting(text_series):
     vectorizer = TfidfVectorizer(
                                 lowercase=True,
-                                max_features=100,
-                                max_df=0.8,
-                                min_df=5,
-                                ngram_range = (1,3),
+                                ngram_range = (1,1),
                                 stop_words = "english"
                             )
     vectors = vectorizer.fit_transform(text_series)
@@ -42,7 +44,6 @@ def apply_tf_idf_weighting(text_series):
 
     dense = vectors.todense()
     denselist = dense.tolist()
-
     all_keywords = []
     for description in denselist:
         x=0
@@ -63,7 +64,10 @@ def remove_stopwords(text_series, stopwords_list=stopwords.words("english")):
     pattern = r'\b(?:{})\b'.format('|'.join(stopwords_list))
     return text_series.str.replace(pat=pattern, repl=" ", regex=True)
 
-def lemmatize_and_limit_pos(text_series, allowed_postags=["NOUN", "ADJ", "VERB", "ADV"]):
+def remove_non_alphanumeric(text_series):
+    return text_series.str.replace(pat=r'\W+', repl=" ", regex=True)
+
+def limit_pos(text_series, allowed_postags=["NOUN", "ADJ", "VERB", "ADV"]):
     nlp = spacy.load("en_core_web_sm", disable=["parser", "ner"])
     texts_out = []
     for text in text_series:
@@ -76,11 +80,17 @@ def lemmatize_and_limit_pos(text_series, allowed_postags=["NOUN", "ADJ", "VERB",
         texts_out.append(final)
     return (texts_out)
 
+
+def stem_text(text):
+    text = whitespace_tokenizer.tokenize(text)
+    text = [porter_stemmer.stem(x) for x in text]
+    return ' '.join(text)
+
 def topic_modeling_preprocess(text_series):
     cleaned_text = text_series.str.lower()
     cleaned_text = remove_numbers(cleaned_text)
     cleaned_text = remove_roman_numbers(cleaned_text)
-    cleaned_text = lemmatize_and_limit_pos(cleaned_text)
+    cleaned_text = limit_pos(cleaned_text)
     cleaned_text = apply_tf_idf_weighting(cleaned_text)
     cleaned_text = [' '.join(x) for x in cleaned_text]
     return pd.Series(cleaned_text)

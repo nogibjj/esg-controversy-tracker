@@ -20,7 +20,7 @@ dataset_path = '/workspaces/esg-controversy-tracker/dataset/news_sentiment.csv'
 data = pd.read_csv(dataset_path)
 data['confidence'] = data['confidence'].abs()
 data = data[data['confidence'] >= 0.99]
-#print(data['sentiment'].value_counts())
+
 max_class_samples = 25000
 data = data.sample(frac=1, random_state=random_state).reset_index()
 pos_sample = data[data['sentiment'] == 'POSITIVE'][0:max_class_samples]
@@ -50,6 +50,7 @@ def data_preprocess(data):
 
     labels = data['sentiment'].values
     train_x, test_x, train_y, test_y = train_test_split(title, labels, stratify = labels, random_state=random_state)
+    print(len(train_x), len(test_x))
     return train_x, test_x, train_y, test_y, vocabulary
 
 

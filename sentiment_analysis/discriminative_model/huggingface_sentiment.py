@@ -1,20 +1,33 @@
 import pandas as pd
+import torch
+from transformers import AutoTokenizer
+from transformers import BertForSequenceClassification
+from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 
-dataset = pd.read_csv("./news_sentiment.csv")
+random_state=12321
+dataset_path = '/workspaces/esg-controversy-tracker/dataset/news_sentiment.csv'
 
-def convert_label(inp):
-    return 0 if inp == "NEGATIVE" else 1
+# Limit the dataset to n rows
+data = pd.read_csv(dataset_path)
+data['confidence'] = data['confidence'].abs()
+data = data[data['confidence'] >= 0.99]
 
-dataset["sentiment"] = dataset["sentiment"].apply(lambda x: convert_label(x))
+max_class_samples = 50
+data = data.sample(frac=1, random_state=random_state).reset_index()
+pos_sample = data[data['sentiment'] == 'POSITIVE'][0:max_class_samples]
+neg_sample = data[data['sentiment'] == 'NEGATIVE'][0:max_class_samples]
+dataset = pd.concat([pos_sample, neg_sample])
 
-train_set = dataset[0:40000]
-valid_set = dataset[40000:45000]
-test_set  = dataset[45000:50000]
+
+dataset["sentiment"] = [0 if x=='NEGATIVE' else 1 for x in dataset['sentiment']]
+
+train_set = dataset[0:40]
+valid_set = dataset[40:45]
+test_set  = dataset[45:50]
 
 #print( train_set.head() )
 
-import torch
-from transformers import AutoTokenizer
+
 
 # Create The Dataset Class.
 class TheDataset(torch.utils.data.Dataset):
@@ -85,8 +98,6 @@ valid_data = next(iter(valid_set_dataloader))
 # Print the output sizes.
 print( train_data["input_ids"].size(), valid_data["input_ids"].size() )
 
-from transformers import BertForSequenceClassification
-
 model = BertForSequenceClassification.from_pretrained("bert-large-uncased")
 
 # for name, param in model.bert.named_parameters():
@@ -97,7 +108,7 @@ for name, param in model.bert.named_parameters():
     if ( not name.startswith('pooler') ) and "layer.23" not in name :
         param.requires_grad = False
 
-from sklearn.metrics import accuracy_score, precision_recall_fscore_support
+
 
 def compute_metrics(pred):
     labels = pred.label_ids
@@ -135,7 +146,7 @@ trainer = Trainer(
 trainer.train()
 
 # Load the checkpoint
-model = BertForSequenceClassification.from_pretrained("./sentiment-analysis/checkpoint-625")
+model = BertForSequenceClassification.from_pretrained("./sentiment-analysis/checkpoint-1")
 
 # Make the test set ready
 test_set_dataset = TheDataset(

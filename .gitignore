@@ -129,3 +129,5 @@ dmypy.json
 .pyre/
 
 .vscode/
+
+sentiment_analysis/discriminative_model/sentiment-analysis

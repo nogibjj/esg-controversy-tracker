@@ -1,18 +1,17 @@
 import pandas as pd
 import torch
-from transformers import AutoTokenizer
-from transformers import BertForSequenceClassification
+from transformers import AutoTokenizer,BertForSequenceClassification, TrainingArguments, Trainer
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 
 random_state=12321
 dataset_path = '/workspaces/esg-controversy-tracker/dataset/news_sentiment.csv'
-
+device = torch.device('cuda')
 # Limit the dataset to n rows
 data = pd.read_csv(dataset_path)
 data['confidence'] = data['confidence'].abs()
 data = data[data['confidence'] >= 0.99]
 
-max_class_samples = 50
+max_class_samples = 12800
 data = data.sample(frac=1, random_state=random_state).reset_index()
 pos_sample = data[data['sentiment'] == 'POSITIVE'][0:max_class_samples]
 neg_sample = data[data['sentiment'] == 'NEGATIVE'][0:max_class_samples]
@@ -21,13 +20,9 @@ dataset = pd.concat([pos_sample, neg_sample])
 
 dataset["sentiment"] = [0 if x=='NEGATIVE' else 1 for x in dataset['sentiment']]
 
-train_set = dataset[0:40]
-valid_set = dataset[40:45]
-test_set  = dataset[45:50]
-
-#print( train_set.head() )
-
-
+train_set = dataset[:9000]
+valid_set = dataset[9000:10000]
+test_set  = dataset[10000:]
 
 # Create The Dataset Class.
 class TheDataset(torch.utils.data.Dataset):
@@ -100,15 +95,10 @@ print( train_data["input_ids"].size(), valid_data["input_ids"].size() )
 
 model = BertForSequenceClassification.from_pretrained("bert-large-uncased")
 
-# for name, param in model.bert.named_parameters():
-#     param.requires_grad = False
-
 # Freeze the first 23 layers of the BERT
 for name, param in model.bert.named_parameters():
     if ( not name.startswith('pooler') ) and "layer.23" not in name :
         param.requires_grad = False
-
-
 
 def compute_metrics(pred):
     labels = pred.label_ids
@@ -122,13 +112,12 @@ def compute_metrics(pred):
         'recall': recall
     }
 
-from transformers import TrainingArguments, Trainer
 
 training_args = TrainingArguments(
     output_dir                  = "./sentiment-analysis",
-    num_train_epochs            = 1,
-    per_device_train_batch_size = 64,
-    per_device_eval_batch_size  = 64,
+    num_train_epochs            = 100,
+    per_device_train_batch_size = 128,
+    per_device_eval_batch_size  = 128,
     warmup_steps                = 500,
     weight_decay                = 0.01,
     save_strategy               = "epoch",
@@ -146,7 +135,7 @@ trainer = Trainer(
 trainer.train()
 
 # Load the checkpoint
-model = BertForSequenceClassification.from_pretrained("./sentiment-analysis/checkpoint-1")
+model = BertForSequenceClassification.from_pretrained("./sentiment-analysis/checkpoint-100")
 
 # Make the test set ready
 test_set_dataset = TheDataset(

@@ -131,3 +131,4 @@ dmypy.json
 .vscode/
 
 sentiment_analysis/discriminative_model/sentiment-analysis
+sentiment_analysis/discriminative_model/sentiment-analysis-synthetic-data

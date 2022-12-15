@@ -52,7 +52,6 @@ def data_preprocess(data):
     train_x, test_x, train_y, test_y = train_test_split(
         title, labels, stratify=labels, random_state=random_state
     )
-    print(len(train_x), len(test_x))
     return train_x, test_x, train_y, test_y, vocabulary
 
 
@@ -99,7 +98,9 @@ def generate_synthetic_data(naive_bayes_model, vocabulary):
 
 train_x, test_x, train_y, test_y, vocabulary = data_preprocess(data)
 model = train_model(train_x, test_x, train_y, test_y)
-synthetic_data = generate_synthetic_data(model, vocabulary)
 
+#synthetic_data = generate_synthetic_data(model, vocabulary)
+synthetic_dataset_path = "/workspaces/esg-controversy-tracker/sentiment_analysis/generative_model/synthetic_data_12_13_2022_23_34_50.csv"
+synthetic_data = pd.read_csv(synthetic_dataset_path)
 train_x, test_x, train_y, test_y, vocabulary = data_preprocess(synthetic_data)
 model = train_model(train_x, test_x, train_y, test_y)

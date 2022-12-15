@@ -7,27 +7,43 @@ from transformers import (
     Trainer,
 )
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support
+max_class_samples = 25000
 
+type = 'real_data' # or 'synthetic_data
 random_state = 12321
-dataset_path = "/workspaces/esg-controversy-tracker/dataset/news_sentiment.csv"
-device = torch.device("cuda")
-# Limit the dataset to n rows
-data = pd.read_csv(dataset_path)
-data["confidence"] = data["confidence"].abs()
-data = data[data["confidence"] >= 0.99]
+model_type = "prajjwal1/bert-tiny"
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+print('Using device:', device)
+print()
 
-max_class_samples = 12800
-data = data.sample(frac=1, random_state=random_state).reset_index()
-pos_sample = data[data["sentiment"] == "POSITIVE"][0:max_class_samples]
-neg_sample = data[data["sentiment"] == "NEGATIVE"][0:max_class_samples]
-dataset = pd.concat([pos_sample, neg_sample])
+if type == 'synthetic_data':
+    dataset_path = "/workspaces/esg-controversy-tracker/sentiment_analysis/generative_model/synthetic_data_12_13_2022_23_34_50.csv"
+    dataset = pd.read_csv(dataset_path)
+    dataset = dataset.sample(frac=1, random_state=random_state).reset_index()
+    pos_sample = dataset[dataset["sentiment"] == 1][0:max_class_samples]
+    neg_sample = dataset[dataset["sentiment"] == 0][0:max_class_samples]
+    dataset = pd.concat([pos_sample, neg_sample])
+    model_output = "./sentiment-analysis-synthetic-data"
+    model_checkpoint = "./sentiment-analysis-synthetic-data/checkpoint-90000"
+else:
+    dataset_path = '/workspaces/esg-controversy-tracker/dataset/news_sentiment.csv'
+    dataset = pd.read_csv(dataset_path)
+    dataset["confidence"] = dataset["confidence"].abs()
+    dataset = dataset[dataset["confidence"] >= 0.99]
+    dataset = dataset.sample(frac=1, random_state=random_state).reset_index()
+    pos_sample = dataset[dataset["sentiment"] == "POSITIVE"][0:max_class_samples]
+    neg_sample = dataset[dataset["sentiment"] == "NEGATIVE"][0:max_class_samples]
+    dataset = pd.concat([pos_sample, neg_sample])
+    dataset["sentiment"] = [0 if x == "NEGATIVE" else 1 for x in dataset["sentiment"]]
+    model_output = "./sentiment-analysis"
+    model_checkpoint = "./sentiment-analysis/checkpoint-90000"
 
 
-dataset["sentiment"] = [0 if x == "NEGATIVE" else 1 for x in dataset["sentiment"]]
+dataset = dataset.sample(frac=1, random_state=random_state).reset_index()
 
-train_set = dataset[:9000]
-valid_set = dataset[9000:10000]
-test_set = dataset[10000:]
+train_set = dataset[:30000]
+valid_set = dataset[30000:37500]
+test_set = dataset[37500:]
 
 # Create The Dataset Class.
 class TheDataset(torch.utils.data.Dataset):
@@ -47,7 +63,7 @@ class TheDataset(torch.utils.data.Dataset):
         encoded_review = self.tokenizer.encode_plus(
             review,
             add_special_tokens=True,
-            max_length=self.max_len,
+            max_length=512,
             return_token_type_ids=False,
             return_attention_mask=True,
             return_tensors="pt",
@@ -61,9 +77,16 @@ class TheDataset(torch.utils.data.Dataset):
             "labels": torch.tensor(sentiments, dtype=torch.long),
         }
 
+tokenizer = AutoTokenizer.from_pretrained(model_type)
 
-# Load the tokenizer for the BERT model.
-tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+def compute_metrics(pred):
+    labels = pred.label_ids
+    preds = pred.predictions.argmax(-1)
+    precision, recall, f1, _ = precision_recall_fscore_support(
+        labels, preds, average="binary"
+    )
+    acc = accuracy_score(labels, preds)
+    return {"accuracy": acc, "f1": f1, "precision": precision, "recall": recall}
 
 # Create Dataset objects for train/validation sets.
 train_set_dataset = TheDataset(
@@ -87,36 +110,13 @@ valid_set_dataloader = torch.utils.data.DataLoader(
     valid_set_dataset, batch_size=16, num_workers=4
 )
 
-# Get one batch as example.
-train_data = next(iter(train_set_dataloader))
-valid_data = next(iter(valid_set_dataloader))
-
-# Print the output sizes.
-print(train_data["input_ids"].size(), valid_data["input_ids"].size())
-
-model = BertForSequenceClassification.from_pretrained("bert-large-uncased")
-
-# Freeze the first 23 layers of the BERT
-for name, param in model.bert.named_parameters():
-    if (not name.startswith("pooler")) and "layer.23" not in name:
-        param.requires_grad = False
-
-
-def compute_metrics(pred):
-    labels = pred.label_ids
-    preds = pred.predictions.argmax(-1)
-    precision, recall, f1, _ = precision_recall_fscore_support(
-        labels, preds, average="binary"
-    )
-    acc = accuracy_score(labels, preds)
-    return {"accuracy": acc, "f1": f1, "precision": precision, "recall": recall}
-
+model = BertForSequenceClassification.from_pretrained(model_type)
 
 training_args = TrainingArguments(
-    output_dir="./sentiment-analysis",
-    num_train_epochs=100,
-    per_device_train_batch_size=128,
-    per_device_eval_batch_size=128,
+    output_dir=model_output,
+    num_train_epochs=300,
+    per_device_train_batch_size=100,
+    per_device_eval_batch_size=50,
     warmup_steps=500,
     weight_decay=0.01,
     save_strategy="epoch",
@@ -135,7 +135,7 @@ trainer.train()
 
 # Load the checkpoint
 model = BertForSequenceClassification.from_pretrained(
-    "./sentiment-analysis/checkpoint-100"
+    model_checkpoint
 )
 
 # Make the test set ready
@@ -145,7 +145,7 @@ test_set_dataset = TheDataset(
     tokenizer=tokenizer,
 )
 
-training_args = TrainingArguments(output_dir="./sentiment-analysis", do_predict=True)
+training_args = TrainingArguments(output_dir=model_output, do_predict=True)
 
 trainer = Trainer(
     model=model,
@@ -154,5 +154,4 @@ trainer = Trainer(
 )
 
 predictions = trainer.predict(test_set_dataset)
-
 print(predictions)

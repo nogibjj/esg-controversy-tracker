@@ -43,10 +43,6 @@ def data_preprocess(data):
     data["Title"] = np.vectorize(pre_processing.stem_text)(data["Title"])
     data["Title"] = pre_processing.remove_numbers(data["Title"])
 
-
-
-
-
     # Split the data into training and testing data
     title = data["Title"].values
     count_vec = CountVectorizer()

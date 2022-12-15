@@ -15,6 +15,7 @@ from pre_processing_scripts import pre_processing
 
 random_state = 12321
 dataset_path = "/workspaces/esg-controversy-tracker/dataset/news_sentiment.csv"
+generate_synthetic_data = False
 
 # Limit the dataset to n rows
 data = pd.read_csv(dataset_path)
@@ -41,6 +42,10 @@ def data_preprocess(data):
     data["Title"] = pre_processing.remove_non_alphanumeric(data["Title"])
     data["Title"] = np.vectorize(pre_processing.stem_text)(data["Title"])
     data["Title"] = pre_processing.remove_numbers(data["Title"])
+
+
+
+
 
     # Split the data into training and testing data
     title = data["Title"].values
@@ -99,8 +104,10 @@ def generate_synthetic_data(naive_bayes_model, vocabulary):
 train_x, test_x, train_y, test_y, vocabulary = data_preprocess(data)
 model = train_model(train_x, test_x, train_y, test_y)
 
-#synthetic_data = generate_synthetic_data(model, vocabulary)
-synthetic_dataset_path = "/workspaces/esg-controversy-tracker/sentiment_analysis/generative_model/synthetic_data_12_13_2022_23_34_50.csv"
-synthetic_data = pd.read_csv(synthetic_dataset_path)
+if generate_synthetic_data:
+    synthetic_data = generate_synthetic_data(model, vocabulary)
+else:
+    synthetic_dataset_path = "/workspaces/esg-controversy-tracker/sentiment_analysis/generative_model/synthetic_data_12_13_2022_23_34_50.csv"
+    synthetic_data = pd.read_csv(synthetic_dataset_path)
 train_x, test_x, train_y, test_y, vocabulary = data_preprocess(synthetic_data)
 model = train_model(train_x, test_x, train_y, test_y)

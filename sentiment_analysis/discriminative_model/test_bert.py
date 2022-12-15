@@ -7,16 +7,17 @@ from transformers import (
     Trainer,
 )
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support
+
 max_class_samples = 25000
 
-type = 'synthetic_data' # or 'synthetic_data
+type = "synthetic_data"  # or 'synthetic_data
 random_state = 12321
 model_type = "prajjwal1/bert-tiny"
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-print('Using device:', device)
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print("Using device:", device)
 print()
 
-if type == 'synthetic_data':
+if type == "synthetic_data":
     dataset_path = "/workspaces/esg-controversy-tracker/sentiment_analysis/generative_model/synthetic_data_12_13_2022_23_34_50.csv"
     dataset = pd.read_csv(dataset_path)
     dataset = dataset.sample(frac=1, random_state=random_state).reset_index()
@@ -26,7 +27,7 @@ if type == 'synthetic_data':
     model_output = "./sentiment-analysis-synthetic-data"
     model_checkpoint = "./sentiment-analysis-synthetic-data/checkpoint-34200"
 else:
-    dataset_path = '/workspaces/esg-controversy-tracker/dataset/news_sentiment.csv'
+    dataset_path = "/workspaces/esg-controversy-tracker/dataset/news_sentiment.csv"
     dataset = pd.read_csv(dataset_path)
     dataset["confidence"] = dataset["confidence"].abs()
     dataset = dataset[dataset["confidence"] >= 0.99]
@@ -51,7 +52,7 @@ class TheDataset(torch.utils.data.Dataset):
     def __init__(self, reviews, sentiments, tokenizer):
         self.reviews = reviews
         self.sentiments = sentiments
-      
+
         self.tokenizer = tokenizer
         self.max_len = tokenizer.model_max_length
 
@@ -79,7 +80,9 @@ class TheDataset(torch.utils.data.Dataset):
             "labels": torch.tensor(sentiments, dtype=torch.long),
         }
 
+
 tokenizer = AutoTokenizer.from_pretrained(model_type)
+
 
 def compute_metrics(pred):
     labels = pred.label_ids
@@ -89,6 +92,7 @@ def compute_metrics(pred):
     )
     acc = accuracy_score(labels, preds)
     return {"accuracy": acc, "f1": f1, "precision": precision, "recall": recall}
+
 
 # Create Dataset objects for train/validation sets.
 train_set_dataset = TheDataset(
@@ -134,9 +138,7 @@ trainer = Trainer(
 )
 
 # Load the checkpoint
-model = BertForSequenceClassification.from_pretrained(
-    model_checkpoint
-)
+model = BertForSequenceClassification.from_pretrained(model_checkpoint)
 
 # Make the test set ready
 test_set_dataset = TheDataset(

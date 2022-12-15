@@ -9,7 +9,7 @@ from transformers import (
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 max_class_samples = 25000
 
-type = 'real_data' # or 'synthetic_data
+type = 'synthetic_data' # or 'synthetic_data
 random_state = 12321
 model_type = "prajjwal1/bert-tiny"
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -24,7 +24,7 @@ if type == 'synthetic_data':
     neg_sample = dataset[dataset["sentiment"] == 0][0:max_class_samples]
     dataset = pd.concat([pos_sample, neg_sample])
     model_output = "./sentiment-analysis-synthetic-data"
-    model_checkpoint = "./sentiment-analysis-synthetic-data/checkpoint-90000"
+    model_checkpoint = "./sentiment-analysis-synthetic-data/checkpoint-34200"
 else:
     dataset_path = '/workspaces/esg-controversy-tracker/dataset/news_sentiment.csv'
     dataset = pd.read_csv(dataset_path)
@@ -44,6 +44,7 @@ dataset = dataset.sample(frac=1, random_state=random_state).reset_index()
 train_set = dataset[:30000]
 valid_set = dataset[30000:37500]
 test_set = dataset[37500:]
+
 
 # Create The Dataset Class.
 class TheDataset(torch.utils.data.Dataset):
@@ -131,8 +132,6 @@ trainer = Trainer(
     eval_dataset=valid_set_dataset,
     compute_metrics=compute_metrics,
 )
-
-trainer.train()
 
 # Load the checkpoint
 model = BertForSequenceClassification.from_pretrained(

@@ -6,4 +6,4 @@
 
 2. Discriminative model results
     - real data - 92.01%
-    - synthetic data - 
+    - synthetic data - 49.40%

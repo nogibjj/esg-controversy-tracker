@@ -5,9 +5,9 @@
 
 ## 2 Data
 ### 2.1 Description
-<p align="justify">The dataset for this project is the Indian Financial News Headlines dataset from kaggle. It consists of 200288 unique data points with the dataset having 54% negative and 46% positive posts. The dataset also contains confidence thresholds for the sentiment score it has assigned to either positive or negative sentiment. 
+<p align="justify">The dataset for this project is the Indian Financial News Headlines dataset from kaggle. It consists of **200288 unique news headlines** with the dataset having **54% negative and 46% positive posts**. The dataset also contains confidence thresholds for the sentiment score it has assigned to either positive or negative sentiment. 
 
-<p align="justify">For this project, we only use a subset of the dataset. First, we filter only to include articles with a confidence greater than 99%. Post which we shuffle the dataset and use 25k positive and negative samples. Our final dataset therefore contains of 50k datapoint with 50% positive and 50% negative posts. Our reasons for doing this is twofold - first is to improve the quality of the dataset, by applying the confidence threshold. Additionally, by restricting the dataset to only 50k rows, we reduce the computational requirements for the discriminative model. </p>
+<p align="justify">For this project, we only use a subset of the dataset. First, we filter only to include articles with a confidence greater than 99%. Post which we shuffle the dataset and use 25k positive and negative samples. Our final dataset therefore contains of 50k datapoint with **50% positive and 50% negative posts**. Our reasons for doing this is twofold - first is to improve the quality of the dataset, by applying the confidence threshold. Additionally, by restricting the dataset to only **50k headlines**, we reduce the computational requirements for the discriminative model. </p>
 
 
 ### 2.2 Pre-Processing
@@ -15,7 +15,7 @@
 
 We perform the following pre-processing steps
 ### 2.2.1 Stopword Removal
-<p align="justify">Words that frequently occur in the corpus that dont convey any meaning are considered stopwords. For example, words like “the”, “and”, “an” etc. which dont have any inherent meaning but are required to form grammatical sentences are considered stopwords. Removing them for the corpus before training, will allow the model to focus more on words that contribute to the task at hand, in this case sentiment analysis. </p>
+<p align="justify">Words that frequently occur in the corpus that dont convey any meaning are considered stopwords. For example, words like “the”, “and”, “an” etc. which dont have any inherent meaning but are required to form grammatical sentences are considered stopwords. Removing them for the corpus before training, will allow the model to focus more on words that contribute to the task of sentiment analysis. </p>
 
 ### 2.2.2 Non-alphanumeric character removal (Incomplete)
 <p align="justify">Similar to stopword removal, this also follows through to do
@@ -29,6 +29,7 @@ We perform the following pre-processing steps
 
 ## 2.3 Synthetic Data Generation
 <p align="justify">Synthetic data refers to data created by the generative model. Post training, the model learns the posterior probability of the words for each class (positive and negative). By sampling the distribution of each class (positive and negative) we can generate word distributions of a given length. Because of the “naive” assumption of the model, i.e. that each word is independent of the other, each word is sampled independently. Therefore, it is very likely that the sentence generated do not follow any grammatical rules, but simply a set of words that follow the probability distribution. </p>
+
 
 
 
@@ -46,23 +47,17 @@ We perform the following pre-processing steps
 
 
 # 4. Results
+1. Results
+2. Computation
 ## 4.1 Generative Model
+On the real data, we observe an accuracy of **87.16%**. Comparatively, the model was less computationally intensive compared to BERT, not requiring a lot of time to train with the only major requirement being memory to hold the large document vectors in memory. The interpretability of the model is quite high, as we are able to vizualize the underlying probabiltiy distribution for both the positive and negative sentiment class. Therefore, when we get a classification result, we can simply refer to the distribution to understand how (or why) a particular headline was classified with a certain sentiment. 
+
+On the synthetic data, we observe an accuracy of **91.28%**. As the data was generated from a generative model itself, it follows that the data generated would adhere to the underlying distribution, explaining the rise in accuracy. 
+
 ## 4.2 Discriminative Model
-Generative model results
-real data - 87.176%
-synthetic data - 91.288%
-Discriminative model results
-real data - 92.01%
-synthetic data - 49.40%
+On the real data, we observe an accuracy of **92.01%**. The model was more computationally intensive both in terms of time and resources, a GPU was required for fine-tuning the model. The interpretability of the model is quite low, as it is not possible to intutively understand why a particular document is getting classified as either negative or positive. While it is possible, to mathematically explain how the model works, it is not something that would be intutive to understand. 
+
+On the systhetic data, we observe an accuray of **49.40%**. This again, follows our expectations as the data generated does not confine to grammatical rules and is simply a set of words generated by the model. BERT is not a bag-of-words model, having been trained on millions of grammatical sentences. Therefore, when being fine-tuned on a dataset generated by a bag-of-words model, it is not able to generalize well and therefore leads to poor performance. We observe an accuracy of less than 50%, which is essentially the same as flipping a coin to determine the sentiment. 
 
 # 5 Conclusion
-
-
-
-1. Generative model results
-    - real data - 87.176%
-    - synthetic data -  91.288%
-
-2. Discriminative model results
-    - real data - 92.01%
-    - synthetic data - 49.40%
+From this project, we clearly understand the differences between a generative and discriminative model and when one is preffered over the other. Generative models are typically used when interpretibility is important, and we are not as concerned with the accuracy of the model. On the other hand, a discriminative model clearly has better performance on real world data as evidenced by the higher accuracy. But the increased accuracy comes at a loss of interpretibility. 

@@ -47,8 +47,6 @@ We perform the following pre-processing steps
 
 
 # 4. Results
-1. Results
-2. Computation
 ## 4.1 Generative Model
 On the real data, we observe an accuracy of **87.16%**. Comparatively, the model was less computationally intensive compared to BERT, not requiring a lot of time to train with the only major requirement being memory to hold the large document vectors in memory. The interpretability of the model is quite high, as we are able to vizualize the underlying probabiltiy distribution for both the positive and negative sentiment class. Therefore, when we get a classification result, we can simply refer to the distribution to understand how (or why) a particular headline was classified with a certain sentiment. 
 

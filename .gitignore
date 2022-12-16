@@ -130,5 +130,8 @@ dmypy.json
 
 .vscode/
 
+dataset/
 sentiment_analysis/discriminative_model/sentiment-analysis
 sentiment_analysis/discriminative_model/sentiment-analysis-synthetic-data
+esg_text_classification/bert-esg-outputs
+esg_text_classification/filtered_outputs

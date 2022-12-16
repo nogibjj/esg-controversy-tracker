@@ -18,7 +18,7 @@ We perform the following pre-processing steps
  <p align="justify">Words that frequently occur in the corpus that dont convey any meaning are considered stopwords. For example, words like “the”, “and”, “an” etc. which dont have any inherent meaning but are required to form grammatical sentences are considered stopwords. Removing them for the corpus before training, will allow the model to focus more on words that contribute to the task of sentiment analysis. </p>
 
  #### 2.2.2 Non-alphanumeric character removal:
- <p align="justify">Similar to stopword removal, this also follows through to do
+ <p align="justify">This is performed to clean the dataset further. As our dataset is only headlines, we are not concerned with any punctuation marks or other non-alphanumber characters. </p>
 
  #### 2.2.3. Stemming
  <p align="justify">Stemming is the process of reducing words in the sentence to their root stem. For example, for words like “larger” and “largest”, the root stem is “large”. Performing stemming on the dataset helps reduce the vocabulary as different inflections of the word get merged into one. Typically, lemmatization works better than stemming as it focuses on the “lemma” of the word rather than the “stem”. For example, after stemming the words “be”, “is” and “are” remain different, whereas when applying lemmatization, they get merged to the same word “be”. Lemmatization would further reduce the dataset as compared to stemming. However, our reason for stemming was primarily due to resource constrains as lemmatization is a lot more computationally intensive. </p>
@@ -37,14 +37,9 @@ We perform the following pre-processing steps
 ## 3.1 Generative 
 <p align="justify">For sentiment analysis of text data, including news headlines, Naive Bayes is a generative model that can be used. Its foundation is the notion that predictions about the class (such as positive, negative, or neutral) of a given text can be made using probabilities. For sentiment analysis, news headlines are categorized as having a positive, negative, or neutral sentiment, and this information is used to train the model. The algorithm learns the likelihood of various words or phrases occurring in headlines with each sentiment class using this training data. The model determines the likelihood that a given headline belongs to each sentiment class during the prediction phase based on the words and phrases it includes. The sentiment of the headline is then predicted to be the class with the highest likelihood. The "naive" assumption, one of the fundamental elements of the naive Bayes model, states that all features (in this case, the words and phrases in the headline) are independent of one another. This presumption makes the computations easier and makes it possible to train and operate the model quickly, but it might not always be true in actual use. Overall, naive Bayes is a straightforward and efficient technique for doing sentiment analysis, and it has been widely applied for this purpose in a variety of scenarios, including the analysis of headlines from Indian news sources. </p>
 
-
-
-
 ## 3.2 Discriminative
 <p align="justify">For the discriminative model, we are approached by using the BERT approach to do the sentimental modeling analysis. BERT is a transformer-based model that has shown amazing results in various NLP tasks over the past years. We are fine-tuning the model using the Hugging face and applying the pre-train model in our ESG test set. A popular machine learning approach for natural language processing applications like language translation, text classification, and text synthesis is called BERT (Bidirectional Encoder Representations from Transformers). It is a discriminative model that has been trained to forecast a particular outcome based on input data, such as the class or label of a piece of text (e.g. the words and sentences in a document). We initially compiled a collection of news articles about India from Indian Financial News Headlines and categorized them with pertinent categories or tags before using BERT to assess the news in India. Politics, economy, culture, and other topics are how we categorize articles. We utilize BERT to train a model to categorize new articles based on their content after generating the dataset. We feed the news items as input data and the matching output labels to the model to train it (the categories or tags). We optimize the model's internal parameters to reduce the discrepancy between the anticipated and actual labels. Once the model has been trained, we feed new articles into it and use the model to forecast the most likely label based on the article's content.
  </p>
-
-
 
 # 4. Results
 ## 4.1 Generative Model

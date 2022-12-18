@@ -94,49 +94,6 @@ def compute_metrics(pred):
     return {"accuracy": acc, "f1": f1, "precision": precision, "recall": recall}
 
 
-# Create Dataset objects for train/validation sets.
-train_set_dataset = TheDataset(
-    reviews=train_set.Title.tolist(),
-    sentiments=train_set.sentiment.tolist(),
-    tokenizer=tokenizer,
-)
-
-valid_set_dataset = TheDataset(
-    reviews=valid_set.Title.tolist(),
-    sentiments=valid_set.sentiment.tolist(),
-    tokenizer=tokenizer,
-)
-
-# Create DataLoader for train/validation sets.
-train_set_dataloader = torch.utils.data.DataLoader(
-    train_set_dataset, batch_size=16, num_workers=4
-)
-
-valid_set_dataloader = torch.utils.data.DataLoader(
-    valid_set_dataset, batch_size=16, num_workers=4
-)
-
-model = BertForSequenceClassification.from_pretrained(model_type)
-
-training_args = TrainingArguments(
-    output_dir=model_output,
-    num_train_epochs=300,
-    per_device_train_batch_size=100,
-    per_device_eval_batch_size=50,
-    warmup_steps=500,
-    weight_decay=0.01,
-    save_strategy="epoch",
-    evaluation_strategy="steps",
-)
-
-trainer = Trainer(
-    model=model,
-    args=training_args,
-    train_dataset=train_set_dataset,
-    eval_dataset=valid_set_dataset,
-    compute_metrics=compute_metrics,
-)
-
 # Load the checkpoint
 model = BertForSequenceClassification.from_pretrained(model_checkpoint)
 

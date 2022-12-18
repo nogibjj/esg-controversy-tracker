@@ -137,24 +137,3 @@ trainer = Trainer(
 )
 
 trainer.train()
-
-# Load the checkpoint
-model = BertForSequenceClassification.from_pretrained(model_checkpoint)
-
-# Make the test set ready
-test_set_dataset = TheDataset(
-    reviews=test_set.Title.tolist(),
-    sentiments=test_set.sentiment.tolist(),
-    tokenizer=tokenizer,
-)
-
-training_args = TrainingArguments(output_dir=model_output, do_predict=True)
-
-trainer = Trainer(
-    model=model,
-    args=training_args,
-    compute_metrics=compute_metrics,
-)
-
-predictions = trainer.predict(test_set_dataset)
-print(predictions)

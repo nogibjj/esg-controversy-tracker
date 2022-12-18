@@ -18,7 +18,7 @@ We perform the following pre-processing steps
  <p align="justify">Words that frequently occur in the corpus that dont convey any meaning are considered stopwords. For example, words like “the”, “and”, “an” etc. which dont have any inherent meaning but are required to form grammatical sentences are considered stopwords. Removing them for the corpus before training, will allow the model to focus more on words that contribute to the task of sentiment analysis. </p>
 
  #### 2.2.2 Non-alphanumeric character removal:
- <p align="justify">This is performed to clean the dataset further. As our dataset is only headlines, we are not concerned with any punctuation marks or other non-alphanumber characters. </p>
+ <p align="justify">This is performed to clean the dataset further. As our dataset is only headlines, we are not concerned with any punctuation marks or other non-alphanumeric characters. </p>
 
  #### 2.2.3. Stemming
  <p align="justify">Stemming is the process of reducing words in the sentence to their root stem. For example, for words like “larger” and “largest”, the root stem is “large”. Performing stemming on the dataset helps reduce the vocabulary as different inflections of the word get merged into one. Typically, lemmatization works better than stemming as it focuses on the “lemma” of the word rather than the “stem”. For example, after stemming the words “be”, “is” and “are” remain different, whereas when applying lemmatization, they get merged to the same word “be”. Lemmatization would further reduce the dataset as compared to stemming. However, our reason for stemming was primarily due to resource constrains as lemmatization is a lot more computationally intensive. </p>
